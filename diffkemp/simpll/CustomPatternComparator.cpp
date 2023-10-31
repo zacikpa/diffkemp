@@ -72,6 +72,12 @@ bool CustomPatternComparator::matchInstPattern(const Instruction *InstL,
         // instruction pair.
         if (PatternComps->first->compare() == 0
             && PatternComps->second->compare() == 0) {
+
+            // Can't match module instructions that have already been matched.
+            if (hasPreviouslyMatchedInst(PatternComps->second->InstMatchMap)
+                || hasPreviouslyMatchedInst(PatternComps->first->InstMatchMap))
+                continue;
+
             // Even if instructions match, the input synchronisation mapping
             // needs to be checked.
             if (!inputMappingValid(InstPatternCompPair.first, PatternComps)) {
@@ -107,9 +113,11 @@ bool CustomPatternComparator::matchValuePattern(const Instruction *InstL,
     // the given load instructions.
     for (auto &&ValuePatternCompPair : ValuePatternComps) {
         bool LeftMatched =
-                matchLoadInst(LoadL, ValuePatternCompPair.first, true);
+                !AllInstMatches.count(LoadL)
+                && matchLoadInst(LoadL, ValuePatternCompPair.first, true);
         bool RightMatched =
-                matchLoadInst(LoadR, ValuePatternCompPair.first, false);
+                !AllInstMatches.count(LoadR)
+                && matchLoadInst(LoadR, ValuePatternCompPair.first, false);
 
         // Register matched instructions.
         if (LeftMatched) {
@@ -235,4 +243,13 @@ void CustomPatternComparator::processPatternMatch(
     for (auto &&InstPair : PatternComps->second->InstMatchMap) {
         AllInstMatches.insert(InstPair.second);
     }
+}
+
+bool CustomPatternComparator::hasPreviouslyMatchedInst(
+        const DenseMap<const Instruction *, const Instruction *>
+                &InstMatchMap) {
+    return std::any_of(
+            InstMatchMap.begin(), InstMatchMap.end(), [&](auto &MapIt) {
+                return AllInstMatches.count(MapIt.getSecond());
+            });
 }

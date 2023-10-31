@@ -999,11 +999,11 @@ int DifferentialFunctionComparator::cmpBasicBlocks(
             // The difference cannot be skipped. Try to match it to one of the
             // loaded difference patterns. Continue the comparison if a suitable
             // starting pattern match gets found.
-            if (CustomPatternComp.matchPattern(&*InstL, &*InstR)) {
-                undoLastInstCompare(InstL, InstR);
+            while (CustomPatternComp.matchPattern(&*InstL, &*InstR))
                 createPatternMapping();
-                if (isPartOfPattern(&*InstL) || isPartOfPattern(&*InstR))
-                    continue;
+            if (isPartOfPattern(&*InstL) || isPartOfPattern(&*InstR)) {
+                undoLastInstCompare(InstL, InstR);
+                continue;
             }
 
             // Try to find a match by moving one of the instruction iterators

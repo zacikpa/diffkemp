@@ -128,6 +128,10 @@ class CustomPatternComparator {
     /// instructions into the combined instruction set.
     void processPatternMatch(const InstPattern *Pat,
                              const InstPatternComparatorPair *PatternComps);
+
+    bool hasPreviouslyMatchedInst(
+            const DenseMap<const Instruction *, const Instruction *>
+                    &InstMatchMap);
 };
 
 #endif // DIFFKEMP_SIMPLL_CUSTOMPATTERNCOMPARATOR_H
