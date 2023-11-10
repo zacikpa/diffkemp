@@ -216,18 +216,20 @@ class DifferentialFunctionComparator : public FunctionComparator {
     bool accumulateAllOffsets(const BasicBlock &BB, uint64_t &Offset) const;
 
     /// Check if the given instruction can be ignored (it does not affect
-    /// semantics). Replacements of ignorable instructions are stored
-    /// inside the ignored instructions map.
+    /// semantics). Ignorable instructions are stored inside the replaced
+    /// instructions map or the ignored instructions set, depending on whether
+    /// they need a replacement.
     bool maySkipInstruction(const Instruction *Inst) const;
 
     /// Check whether the given cast can be ignored (it does not affect
     /// semantics. First operands of ignorable casts are stored as their
-    /// replacements inside the ignored instructions map.
+    /// replacements inside the replaced instructions map.
     bool maySkipCast(const User *Cast) const;
 
     /// Check whether the given instruction is a repetitive variant of a
-    /// previous load with no store instructions in between. Replacements of
-    /// ignorable loads are stored inside the ignored instructions map.
+    /// previous load with no store or call instructions in between.
+    /// Replacements of ignorable loads are stored inside the replaced
+    /// instructions map.
     bool maySkipLoad(const LoadInst *Load) const;
 
     /// Check whether the given reorderable binary operator can be skipped.
@@ -235,7 +237,7 @@ class DifferentialFunctionComparator : public FunctionComparator {
     /// of the same kind.
     bool maySkipReorderableBinaryOp(const Instruction *Op) const;
 
-    /// Retrive the replacement for the given value from the ignored
+    /// Retrieve the replacement for the given value from the replaced
     /// instructions map. Try to generate the replacement if a bitcast is given.
     const Value *
             getReplacementValue(const Value *Replaced,

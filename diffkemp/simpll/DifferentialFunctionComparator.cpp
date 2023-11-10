@@ -505,8 +505,9 @@ int DifferentialFunctionComparator::cmpAllocs(const CallInst *CL,
 }
 
 /// Check if the given instruction can be ignored (it does not affect
-/// semantics). Replacements of ignorable instructions are stored
-/// inside the ignored instructions map.
+/// semantics). Ignorable instructions are stored inside the replaced
+/// instructions map or the ignored instructions set, depending on whether
+/// they need a replacement.
 bool DifferentialFunctionComparator::maySkipInstruction(
         const Instruction *Inst) const {
     if (isa<AllocaInst>(Inst)) {
@@ -537,7 +538,7 @@ bool DifferentialFunctionComparator::maySkipInstruction(
 
 /// Check whether the given cast can be ignored (it does not affect
 /// semantics. First operands of ignorable casts are stored as their
-/// replacements inside the ignored instructions map.
+/// replacements inside the replaced instructions map.
 bool DifferentialFunctionComparator::maySkipCast(const User *Cast) const {
     auto SrcTy = Cast->getOperand(0)->getType();
     auto DestTy = Cast->getType();
@@ -597,8 +598,8 @@ bool DifferentialFunctionComparator::maySkipCast(const User *Cast) const {
 }
 
 /// Check whether the given instruction is a repetitive variant of a previous
-/// load with no store instructions in between. Replacements of ignorable loads
-/// are stored inside the ignored instructions map.
+/// load with no store or call instructions in between. Replacements of
+/// ignorable loads are stored inside the replaced instructions map.
 bool DifferentialFunctionComparator::maySkipLoad(const LoadInst *Load) const {
     auto BB = Load->getParent();
     if (!BB) {
@@ -689,7 +690,7 @@ bool mayIgnoreMacro(std::string macro) {
     return ignoredMacroList.find(macro) != ignoredMacroList.end();
 }
 
-/// Retrive the replacement for the given value from the ignored instructions
+/// Retrieve the replacement for the given value from the replaced instructions
 /// map. Try to generate the replacement if a bitcast is given.
 const Value *DifferentialFunctionComparator::getReplacementValue(
         const Value *Replaced, DenseMap<const Value *, int> &sn_map) const {
